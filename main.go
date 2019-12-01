@@ -8,10 +8,10 @@ import (
 )
 
 type Todo struct {
-	ID		int 		`json:"id"`
+	ID			int 		`json:"id"`
 	UserName	string		`json:"user_name"`
-	Title	string		`json:"title"`
-	TextField string	`json:"text_field"`
+	Title		string		`json:"title"`
+	TextField 	string		`json:"text_field"`
 
 }
 //slice of todos
@@ -22,6 +22,18 @@ var todos []Todo
 func getTodos(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(todos)
+}
+//make a new todo
+func createTodo(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var newTodo Todo
+	_ = json.NewDecoder(r.Body).Decode(&newTodo)
+
+	newTodo.ID = todos[len(todos)-1].ID + 1
+
+	todos = append(todos, newTodo)
+	_ = json.NewEncoder(w).Encode(newTodo)
 }
 
 func main(){
@@ -35,75 +47,6 @@ func main(){
 
 	//route handling
 	r.HandleFunc("/api/todos", getTodos).Methods("GET")
-
+	r.HandleFunc("/api/newtodo", createTodo).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
-
-//package main
-//
-//import (
-//	"encoding/json"
-//	"fmt"
-//	"io/ioutil"
-//	"log"
-//	"net/http"
-//
-//	"github.com/gorilla/mux"
-//)
-//
-//type event struct {
-//	ID		string `json:"ID"`
-//	Title 	string `json:"Title"`
-//	Description string `json:"Description"`
-//}
-//
-//type allEvents []event
-//
-//var events = allEvents{
-//	{
-//		ID: 		"1",
-//		Title:		"Introduction to Golang",
-//		Description: "Come join us for a chance to learn how golang works and get to eventually try it out",
-//	},
-//}
-//
-//func createEvent(w http.ResponseWriter, r *http.Request){
-//	var newEvent event
-//	reqBody, err := ioutil.ReadAll(r.Body)
-//	if err != nil {
-//		fmt.Fprintf(w, "Kindly enter data with the event title and description only in order to update")
-//	}
-//
-//	json.Unmarshal(reqBody, &newEvent)
-//	events = append(events, newEvent)
-//	w.WriteHeader(http.StatusCreated)
-//
-//	json.NewEncoder(w).Encode(newEvent)
-//}
-//
-//func getOneEvent(w http.ResponseWriter, r *http.Request){
-//	eventID := mux.Vars(r)["id"]
-//
-//	for _,singleEvent := range events {
-//		if singleEvent.ID == eventID {
-//			json.NewEncoder(w).Encode(singleEvent)
-//		}
-//	}
-//}
-//
-//func getAllEvents(w http.ResponseWriter, r *http.Request){
-//	json.NewEncoder(w).Encode(events)
-//}
-//
-//func homeLink(w http.ResponseWriter, r *http.Request) {
-//	fmt.Fprintf(w, "Welcome home!")
-//}
-//
-//func main() {
-//	router := mux.NewRouter().StrictSlash(true)
-//	router.HandleFunc("/", homeLink)
-//	router.HandleFunc("/event", createEvent)
-//	router.HandleFunc("/events/{id}", getOneEvent)
-//	log.Fatal(http.ListenAndServe(":8080", router))
-//	//fmt.Println("Hello World!")
-//}
