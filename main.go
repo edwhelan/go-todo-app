@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type Todo struct {
@@ -12,17 +13,18 @@ type Todo struct {
 	UserName	string		`json:"user_name"`
 	Title		string		`json:"title"`
 	TextField 	string		`json:"text_field"`
-
 }
+
 //slice of todos
 var todos []Todo
 
 // get all todos
 //example call: localhost:8080/api/todos
-func getTodos(w http.ResponseWriter, r *http.Request){
+func getTodos(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(todos)
 }
+
 //make a new todo
 func createTodo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -34,6 +36,29 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 
 	todos = append(todos, newTodo)
 	_ = json.NewEncoder(w).Encode(newTodo)
+}
+//update existingtodo
+func updateTodo(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	//get params and convert id to int type
+	params := mux.Vars(r)
+	todoId, _ := strconv.Atoi(params["id"])
+
+	for index, item := range todos {
+		if item.ID == todoId {
+			retainedId := item.ID     //retain this ID
+			todos = append(todos[:index], todos[index+1:]...) //delete the newtodo?
+
+		var todo Todo 									//instantiate new user
+			_ = json.NewDecoder(r.Body).Decode(&todo)  	//fill out info from body
+			todo.ID = retainedId						//use retained id
+			todos = append(todos, todo) 				//re-add the newtodo
+			_ = json.NewEncoder(w).Encode(todo)  		//return the newtodo
+			return
+		}
+	}
+	_ = json.NewEncoder(w).Encode(&Todo{})
 }
 
 func main(){
@@ -48,5 +73,6 @@ func main(){
 	//route handling
 	r.HandleFunc("/api/todos", getTodos).Methods("GET")
 	r.HandleFunc("/api/newtodo", createTodo).Methods("POST")
+	r.HandleFunc("/api/updatetodo/{id}", updateTodo).Methods("PUT")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
