@@ -18,6 +18,22 @@ type Todo struct {
 //slice of todos
 var todos []Todo
 
+// get a specific newtodo off ID
+func getOneTodo(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	//get params and convert id to int type
+	params := mux.Vars(r)
+	todoId, _ := strconv.Atoi(params["id"])
+
+	for _, item := range todos {
+		if item.ID == todoId {
+			_ = json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	_ = json.NewEncoder(w).Encode(&Todo{})
+}
+
 // get all todos
 //example call: localhost:8080/api/todos
 func getTodos(w http.ResponseWriter, r *http.Request) {
@@ -90,6 +106,7 @@ func main(){
 
 	//route handling
 	r.HandleFunc("/api/todos", getTodos).Methods("GET")
+	r.HandleFunc("/api/todo/{id}", getOneTodo).Methods("GET")
 	r.HandleFunc("/api/newtodo", createTodo).Methods("POST")
 	r.HandleFunc("/api/updatetodo/{id}", updateTodo).Methods("PUT")
 	r.HandleFunc("/api/deletetodo/{id}", deletetodo).Methods("Delete")
