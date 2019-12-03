@@ -25,7 +25,7 @@ func getTodos(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(todos)
 }
 
-//make a new todo
+//make a newtodo
 func createTodo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -61,6 +61,24 @@ func updateTodo(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&Todo{})
 }
 
+// delete a newtodo
+func deletetodo(w http.ResponseWriter, r*http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
+	//get params and convert id to int type
+	params := mux.Vars(r)
+	todoId, _ := strconv.Atoi(params["id"])
+
+	for index, item := range todos {
+		if item.ID == todoId{
+			todos = append(todos[:index], todos[index+1:]...)
+			break
+		}
+	}
+	_ = json.NewEncoder(w).Encode(todos)
+
+}
+
 func main(){
 	//initialize router
 	r := mux.NewRouter()
@@ -74,5 +92,6 @@ func main(){
 	r.HandleFunc("/api/todos", getTodos).Methods("GET")
 	r.HandleFunc("/api/newtodo", createTodo).Methods("POST")
 	r.HandleFunc("/api/updatetodo/{id}", updateTodo).Methods("PUT")
+	r.HandleFunc("/api/deletetodo/{id}", deletetodo).Methods("Delete")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
