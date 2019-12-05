@@ -2,10 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type Todo struct {
@@ -94,8 +97,56 @@ func deletetodo(w http.ResponseWriter, r*http.Request){
 	_ = json.NewEncoder(w).Encode(todos)
 
 }
+//api struct example to get unknown json object
+type people struct {
+	Number int `json:"number"`
+	X map[string]interface{} `json:"-"`
+}
+
+func apiCall() {
+	url := "http://api.open-notify.org/astros.json"
+
+	spaceClient := http.Client{
+		Timeout: time.Second * 2, // Maximum of 2 secs
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Header.Set("User-Agent", "spacecount-tutorial")
+
+	res, getErr := spaceClient.Do(req)
+	if getErr != nil {
+		log.Fatal(getErr)
+	}
+
+	body, readErr := ioutil.ReadAll(res.Body)
+	if readErr != nil {
+		log.Fatal(readErr)
+	}
+
+	people1 := people{}
+	jsonErr := json.Unmarshal(body, &people1)
+	if jsonErr != nil {
+		log.Fatal(jsonErr)
+	}
+
+	jsonErr2 := json.Unmarshal(body, &people1.X)
+	if jsonErr2 != nil {
+		log.Fatal(jsonErr2)
+	}
+
+	fmt.Println(people1.Number)
+	fmt.Println(people1.X)
+}
+
+
+
 
 func main(){
+	apiCall()
 	//initialize router
 	r := mux.NewRouter()
 
